@@ -1,0 +1,172 @@
+station:
+  name: "Vision Station 01"
+  save_debug_images: true
+  capture_directory: "captures"
+
+camera:
+  index: 0
+  backend: "dshow"
+  width: 2560
+  height: 1440
+  fps: 30
+  # The Stafor sample set negotiated YUY2 at 2560x1440 / 30 FPS.
+  fourcc: "YUY2"
+  autofocus: true
+  focus: null
+  exposure: null
+  gain: null
+  warmup_frames: 12
+
+installation:
+  # Mechanical height: lens/front glass to the empty conveyor surface.
+  camera_to_belt_cm: 40.0
+  # Optical distance is camera_to_belt_cm - parcel_height_cm for a top-down label.
+  # The current Stafor sample set is sharpest at 35-40 cm lens-to-label distance.
+  target_label_distance_cm: [35.0, 40.0]
+  view: "top_down"
+
+acquisition:
+  burst_frames: 15
+  stable_frames: 4
+  motion_threshold: 3.5
+  # Conservative gates: QR and logo remain usable at 30 cm.
+  min_laplacian: 12.5
+  min_tenengrad: 1180.0
+  max_highlight_ratio: 0.03
+  # Temporary setup while the camera has no conveyor fixture. The GUI starts in
+  # BENCH mode so the current 15-30 cm floor/desk test is not blocked by the
+  # stricter commissioned-conveyor gates above.
+  bench_mode_default: true
+  bench:
+    stable_frames: 2
+    motion_threshold: 4.5
+    min_laplacian: 3.0
+    min_tenengrad: 450.0
+    max_highlight_ratio: 0.06
+
+label:
+  # Fractions relative to the full camera frame: [x, y, width, height].
+  # Broad fixed search window at the tested 20 cm camera position.
+  roi: [0.14, 0.02, 0.60, 0.96]
+  # A6 portrait at 10 pixels/mm.
+  rectify_width: 1050
+  rectify_height: 1480
+  qr_roi: [0.67, 0.50, 0.29, 0.27]
+  rectification:
+    enabled: true
+    method: "qr_anchor"
+    # Destination of the QR within the canonical 1050x1480 A6 image.
+    # Measured from the current Shopee Xpress A6 label. This prevents the
+    # rectified label from including the floor below the parcel.
+    qr_target_roi: [0.70, 0.54, 0.20, 0.20]
+    min_area_ratio: 0.20
+    canny_low: 50
+    canny_high: 150
+
+qr:
+  try_inverted: true
+  upscale: 2.0
+  # Hard 25/30 cm samples were recovered by adding a second 3x attempt.
+  upscales: [2.0, 3.0]
+
+package_detection:
+  # QR-anchored target selection: the parcel that owns the decoded QR is boxed,
+  # even when another parcel, a hand or the floor is visible in the same frame.
+  live_interval_frames: 10
+  live_max_dimension: 1280
+  live_border_margin_ratio: 0.015
+  canny_low: 40
+  canny_high: 120
+  projection_blur: 41
+  min_edge_projection: 12
+  relative_edge_projection: 0.25
+  max_side_expansion: 1.15
+  fallback_side_expansion: 0.38
+  vertical_padding_ratio: 0.025
+
+logo:
+  enabled: true
+  template_path: "assets/logo/spx_template.png"
+  # GUI calibration overrides are stored beside the executable and reused at startup.
+  calibration_path: "config/calibration/logo_calibration.json"
+  min_template_width_px: 80
+  min_template_height_px: 30
+  min_template_features: 12
+  # Search area on the canonical 1050x1480 A6 image.
+  search_roi: [0.18, 0.08, 0.44, 0.23]
+  # Bench validation: 10/10 current Shopee Xpress labels passed; blank/background
+  # controls remained negative with the calibrated operator template.
+  threshold: 0.12
+  min_good_matches: 8
+  min_inlier_ratio: 0.40
+  match_ratio: 0.76
+
+damage:
+  enabled: true
+  # Must be captured with the conveyor empty and the final lighting/camera position.
+  background_path: "config/calibration/empty_belt.png"
+  # Captured from the GUI with no parcel in view for the current floor/desk setup.
+  bench_background_path: "config/calibration/empty_bench.png"
+  roi: [0.02, 0.02, 0.96, 0.96]
+  difference_threshold: 25
+  blur_kernel: 9
+  morphology_kernel: 11
+  require_full_contour: true
+  border_margin_px: 10
+  min_package_area_ratio: 0.08
+  min_rectangularity: 0.82
+  min_solidity: 0.95
+  approx_epsilon_ratio: 0.025
+  max_vertices: 8
+  min_hole_area_ratio: 0.002
+  hole_border_margin_px: 9
+  # Direct visible-surface scan inside the QR-selected package box. The label is
+  # masked so black text and the QR cannot be confused with a puncture.
+  surface_hole_contrast: 45
+  surface_hole_min_threshold: 35
+  surface_hole_max_threshold: 115
+  surface_hole_min_area_ratio: 0.00020
+  surface_hole_max_area_ratio: 0.020
+  surface_hole_max_aspect: 3.2
+  surface_hole_min_fill: 0.30
+  label_mask_padding_px: 10
+  target_shape_min_area_ratio: 0.25
+
+classification:
+  # Test QR/logo/damage locally while Supabase is not commissioned.
+  local_test_mode: true
+  local_test_bin: "LOCAL_TEST"
+  reject_bin: "REJECT"
+  label_reject_bin: "REJECT"
+  defect_bin: "DEFECT"
+  unknown_bin: "MANUAL_REVIEW"
+  destination_field: "destination_bin"
+  require_qr: true
+  require_waybill: true
+  require_logo: true
+  require_damage_check: true
+
+audit:
+  enabled: true
+  directory: "captures"
+  # Retain the complete field view for local monitoring and later audit review.
+  save_full_frame: true
+  save_label_image: true
+  save_debug_images: true
+
+digital_twin:
+  # Keep the software scene until the commissioned GLB assets are available.
+  viewer: "placeholder"
+  manifest_path: "assets/digital_twin/scene_manifest.json"
+  preferred_format: "glb"
+
+controller:
+  # Manual UDP control only; no conveyor automation or speed feedback.
+  host: "192.168.2.100"
+  port: 8120
+  default_speed: 150
+
+supabase:
+  enabled: false
+  table: "shipments"
+  waybill_column: "waybill_code"

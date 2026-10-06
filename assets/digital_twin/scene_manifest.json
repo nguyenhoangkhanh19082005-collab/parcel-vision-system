@@ -1,0 +1,58 @@
+{
+  "version": 1,
+  "units": "meters",
+  "upAxis": "Y",
+  "assets": [
+    {
+      "id": "conveyor",
+      "label": "Main conveyor",
+      "file": "",
+      "translation": [0.0, 0.0, 0.0],
+      "rotation": [0.0, 0.0, 0.0],
+      "scale": [1.0, 1.0, 1.0],
+      "nodeBindings": {
+        "belt": "Conveyor/Belt",
+        "entrySensor": "Conveyor/Sensor_S1"
+      }
+    },
+    {
+      "id": "robot",
+      "label": "Six-axis sorting robot",
+      "file": "",
+      "translation": [3.0, 0.0, 0.0],
+      "rotation": [0.0, 0.0, 0.0],
+      "scale": [1.0, 1.0, 1.0],
+      "nodeBindings": {
+        "joint1": "Robot/J1",
+        "joint2": "Robot/J2",
+        "joint3": "Robot/J3",
+        "joint4": "Robot/J4",
+        "joint5": "Robot/J5",
+        "joint6": "Robot/J6",
+        "tool": "Robot/Tool"
+      }
+    },
+    {
+      "id": "cell",
+      "label": "Vision gantry and safety cell",
+      "file": "",
+      "translation": [0.0, 0.0, 0.0],
+      "rotation": [0.0, 0.0, 0.0],
+      "scale": [1.0, 1.0, 1.0],
+      "nodeBindings": {
+        "camera": "Vision/Camera_2K",
+        "passBin": "Bins/Pass",
+        "defectBin": "Bins/Defect",
+        "reviewBin": "Bins/Review"
+      }
+    }
+  ],
+  "telemetryBindings": {
+    "conveyor.speed": "plc.conveyor.speed_mps",
+    "conveyor.running": "plc.conveyor.running",
+    "sensor.entry": "plc.sensor.s1",
+    "robot.joints": "robot.joints_deg",
+    "vision.stage": "vision.process_stage",
+    "vision.decision": "vision.last_decision"
+  }
+}

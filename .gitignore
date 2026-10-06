@@ -1,0 +1,33 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.venv/
+.env
+captures/
+config/calibration/*.png
+dataset/raw/
+dataset/analysis/
+.runtime/
+work/
+team-share/
+exports/
+logs/
+build/
+dist/
+*.egg-info/
+
+# Large CAD/3D deliverables belong in the restricted team Drive by default.
+# Remove these rules only after the team explicitly adopts Git LFS.
+assets/digital_twin/models/
+*.glb
+*.gltf
+*.bin
+*.fbx
+*.stl
+*.step
+*.stp
+
+# Local transfer packages must not be committed back into the repository.
+*.zip
+*.7z
